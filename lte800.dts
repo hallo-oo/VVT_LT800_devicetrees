@@ -1,0 +1,23 @@
+/dts-v1/;
+
+
+
+/include/ "zynq-zed.dtsi"
+
+//&sdhci1 {
+//	status = "okay";
+//    xlnx,has-cd = <0x1>;
+//    xlnx,has-power = <0x0>;
+//};
+
+&sdhci0 {
+	status = "okay";
+	disable-wp;
+	xlnx,has-cd = <0x1>;
+	xlnx,has-power = <0x0>;
+};
+
+
+
+
+/include/ "ad9523.tmp.dtsi"

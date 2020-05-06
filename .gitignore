@@ -1,0 +1,7 @@
+.*
+*.dtb
+dt_ver.dtsi
+ad9523.tmp.dtsi
+
+!.gitignore
+!.travis.yml

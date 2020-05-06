@@ -1,0 +1,265 @@
+&spi0 {
+	status = "okay";
+};
+
+//#define fmc_spi spi0
+
+#include <ad9528.h>
+
+/ {
+	clocks {
+
+	};
+};
+
+&spi0 {
+
+	clk0_ad9528: ad9528-1@0 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			#clock-cells = <1>;
+			compatible = "ad9528";
+	
+			spi-max-frequency = <10000000>;
+			//adi,spi-3wire-enable;
+			reg = <0>;
+	
+			clock-output-names = "ad9528-1_out0", "ad9528-1_out1", "ad9528-1_out2", "ad9528-1_out3", "ad9528-1_out4", "ad9528-1_out5", 	"ad9528-1_out6", "ad9528-1_out7", "ad9528-1_out8", "ad9528-1_out9", "ad9528-1_out10", "ad9528-1_out11", "ad9528-1_out12", 	"ad9528-1_out13";
+			adi,vcxo-freq = <30720000>;
+	
+			adi,refa-enable;
+			adi,refa-diff-rcv-enable;
+			adi,refa-r-div = <4>;
+			//adi,osc-in-cmos-neg-inp-enable;
+	
+			/* PLL1 config */
+			adi,pll1-feedback-div = <1>;
+			adi,pll1-charge-pump-current-nA = <5000>;//<63500>;//
+	
+	
+			/* PLL2 config */
+			adi,pll2-ndiv-a-cnt = <0>;	//P=4
+			adi,pll2-ndiv-b-cnt = <30>;	//N2=P*b+a=120
+			adi,pll2-vco-diff-m1 = <3>;	//M分频为3，VCO频率为30.72*120/3=1228.8
+			adi,pll2-n2-div = <40>; /* N / M1 */
+			adi,pll2-r1-div = <1>;
+			adi,pll2-charge-pump-current-nA = <805000>;//间隔为3.5uA，0~FF满程900uA，当前取FE=889uA
+	
+			/* SYSREF config */
+			adi,sysref-src = <SYSREF_SRC_INTERNAL>;
+			adi,sysref-pattern-mode = <SYSREF_PATTERN_CONTINUOUS>;
+			adi,sysref-k-div = <512>;
+			adi,sysref-request-enable;
+			adi,sysref-nshot-mode = <SYSREF_NSHOT_4_PULSES>;
+			adi,sysref-request-trigger-mode = <SYSREF_LEVEL_HIGH>;
+	
+			adi,rpole2 = <RPOLE2_900_OHM>;
+			adi,rzero = <RZERO_1850_OHM>;
+			adi,cpole1 = <CPOLE1_16_PF>;
+	
+			adi,status-mon-pin0-function-select = <1>; /* PLL1 & PLL2 Locked */
+			adi,status-mon-pin1-function-select = <7>; /* REFA Correct */
+	
+			ad9528_0_c0: channel@0 {
+				reg = <0>;
+				adi,extended-name = "TEST_CLK";
+				adi,driver-mode = <DRIVER_MODE_LVDS>;
+				adi,divider-phase = <0>;
+				adi,channel-divider = <10>;
+				adi,signal-source = <SOURCE_VCO>;
+			};
+
+			ad9528_0_c4: channel@4 {
+				reg = <4>;
+				adi,extended-name = "FPGA_CLK";
+				adi,driver-mode = <DRIVER_MODE_LVDS>;
+				adi,divider-phase = <0>;
+				adi,channel-divider = <10>;
+				adi,signal-source = <SOURCE_VCO>;
+			};
+
+			ad9528_0_c5: channel@5 {
+				reg = <5>;
+				adi,extended-name = "GTP_SECOND_CLK";
+				adi,driver-mode = <DRIVER_MODE_LVDS>;
+				adi,divider-phase = <0>;
+				adi,channel-divider = <10>;
+				adi,signal-source = <SOURCE_VCO>;
+			};
+
+			ad9528_0_c6: channel@6 {
+				reg = <6>;
+				adi,extended-name = "GTP_MAIN_CLK";
+				adi,driver-mode = <DRIVER_MODE_LVDS>;
+				adi,divider-phase = <0>;
+				adi,channel-divider = <10>;
+				adi,signal-source = <SOURCE_VCO>;
+			};
+
+			ad9528_0_c7: channel@7 {
+				reg = <7>;
+				adi,extended-name = "AD937X_CLK";
+				adi,driver-mode = <DRIVER_MODE_LVDS>;
+				adi,divider-phase = <0>;
+				adi,channel-divider = <10>;
+				adi,signal-source = <SOURCE_VCO>;
+			};
+	};
+
+	trx0_ad9371: ad9371-phy@1 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		#clock-cells = <1>;
+		compatible = "ad9371";
+
+		/* SPI Setup */
+		reg = <1>;
+		spi-max-frequency = <10000000>;//
+
+		/* Clocks */
+		clocks = <&clk0_ad9528 7>, <&clk0_ad9528 7>, <&clk0_ad9528 7>, <&clk0_ad9528 7>, <&clk0_ad9528 7>;
+		clock-names = "jesd_rx_clk", "jesd_tx_clk", "jesd_rx_os_clk", "dev_clk", "fmc_clk";
+		clock-output-names = "rx_sampl_clk", "rx_os_sampl_clk", "tx_sampl_clk";
+
+		adi,clocks-device-clock_khz = <122880>;
+		adi,clocks-clk-pll-vco-freq_khz = <9830400>;
+		adi,clocks-clk-pll-vco-div = <2>;
+		adi,clocks-clk-pll-hs-div = <4>;
+
+		adi,rx-settings-rx-pll-lo-frequency_hz = /bits/64 <829500000>;
+		adi,tx-settings-tx-pll-lo-frequency_hz = /bits/64 <874500000>;
+		//adi,obs-settings-obs-rx-channels-enable = <0x03>;
+		/* rx framer */
+		//adi,jesd204-rx-framer-bank-id
+		//adi,jesd204-rx-framer-device-id
+		//adi,jesd204-rx-framer-lane0-id
+		adi,jesd204-rx-framer-m = <4>;
+		//adi,jesd204-rx-framer-k = <32>;
+		adi,jesd204-rx-framer-scramble = <1>;
+		//adi,jesd204-rx-framer-external-sysref = <1>;
+		adi,jesd204-rx-framer-serializer-lanes-enabled = <4>;
+		//adi,jesd204-rx-framer-serializer-lane-crossbar
+		//adi,jesd204-rx-framer-serializer-amplitude
+		//adi,jesd204-rx-framer-pre-emphasis
+		//adi,jesd204-rx-framer-invert-lane-polarity
+		//adi,jesd204-rx-framer-lmfc-offset
+		//adi,jesd204-rx-framer-new-sysref-on-relink
+		//adi,jesd204-rx-framer-enable-auto-chan-xbar
+		//adi,jesd204-rx-framer-obs-rx-syncb-select
+		//adi,jesd204-rx-framer-rx-syncb-mode
+		//adi,jesd204-rx-framer-over-sample
+
+		/* obs frame */
+		//adi,jesd204-obs-framer-bank-id
+		//adi,jesd204-obs-framer-device-id
+		//adi,jesd204-obs-framer-lane0-id
+		adi,jesd204-obs-framer-m = <2>;
+		//adi,jesd204-obs-framer-k
+		adi,jesd204-obs-framer-scramble = <1>;
+		//adi,jesd204-obs-framer-external-sysref
+		adi,jesd204-obs-framer-serializer-lanes-enabled = <1>;
+		//adi,jesd204-obs-framer-serializer-lane-crossbar
+		//adi,jesd204-obs-framer-serializer-amplitude
+		//adi,jesd204-obs-framer-pre-emphasis
+		//adi,jesd204-obs-framer-invert-lane-polarity
+		//adi,jesd204-obs-framer-lmfc-offset
+		//adi,jesd204-obs-framer-new-sysref-on-relink
+		//adi,jesd204-obs-framer-enable-auto-chan-xbar
+		//adi,jesd204-obs-framer-obs-rx-syncb-select
+		//adi,jesd204-obs-framer-rx-syncb-mode
+		//adi,jesd204-obs-framer-over-sample
+
+		/* tx deframer */
+		//adi,jesd204-deframer-bank-id
+		//adi,jesd204-deframer-device-id
+		//adi,jesd204-deframer-lane0-id
+		adi,jesd204-deframer-m = <4>;
+		//adi,jesd204-deframer-k
+		adi,jesd204-deframer-scramble = <1>;
+		//adi,jesd204-deframer-external-sysref
+		adi,jesd204-deframer-deserializer-lanes-enabled = <5>;
+		//adi,jesd204-deframer-deserializer-lane-crossbar
+		//adi,jesd204-deframer-eq-setting
+		//adi,jesd204-deframer-invert-lane-polarity
+		//adi,jesd204-deframer-lmfc-offset
+		//adi,jesd204-deframer-new-sysref-on-relink
+		//adi,jesd204-deframer-enable-auto-chan-xbar
+		//adi,jesd204-deframer-tx-syncb-mode
+
+		adi,rx-profile-adc-div = <1>;
+		adi,rx-profile-rx-fir-decimation = <2>;
+		adi,rx-profile-rx-dec5-decimation = <5>;
+		adi,rx-profile-en-high-rej-dec5 = <1>;
+		adi,rx-profile-rhb1-decimation = <2>;
+		adi,rx-profile-iq-rate_khz = <61440>;
+		adi,rx-profile-rf-bandwidth_hz = <40000000>;
+		adi,rx-profile-rx-bbf-3db-corner_khz = <40000>;
+
+		adi,obs-profile-adc-div = <1>;
+		adi,obs-profile-rx-fir-decimation = <2>;
+		adi,obs-profile-rx-dec5-decimation = <5>;
+		adi,obs-profile-en-high-rej-dec5 = <1>;
+		adi,obs-profile-rhb1-decimation = <1>;
+		adi,obs-profile-iq-rate_khz = <122880>;
+		adi,obs-profile-rf-bandwidth_hz = <100000000>;
+		adi,obs-profile-rx-bbf-3db-corner_khz = <50000>;
+
+		adi,tx-profile-dac-div = <1>; //DACDIV_2p5
+		adi,tx-profile-tx-fir-interpolation = <1>;
+		adi,tx-profile-thb1-interpolation = <2>;
+		adi,tx-profile-thb2-interpolation = <2>;
+		adi,tx-profile-tx-input-hb-interpolation = <1>;
+		adi,tx-profile-iq-rate_khz = <122880>;
+		adi,tx-profile-primary-sig-bandwidth_hz = <20000000>;
+		adi,tx-profile-rf-bandwidth_hz = <100000000>;
+		adi,tx-profile-tx-dac-3db-corner_khz = <100000>;
+		adi,tx-profile-tx-bbf-3db-corner_khz = <50000>;
+	};
+
+};
+
+&trx0_ad9371 {
+
+	compatible = "ad9375";
+
+	adi,dpd-damping = <10>;
+	adi,dpd-num-weights = <2>;
+	adi,dpd-model-version = <2>;
+	adi,dpd-high-power-model-update = <1>;
+	adi,dpd-model-prior-weight = <20>;
+	adi,dpd-robust-modeling = <0>;
+	adi,dpd-samples = <512>;
+	adi,dpd-outlier-threshold = <1638>;
+	adi,dpd-additional-delay-offset = <(-1)>;
+	adi,dpd-path-delay-pn-seq-level = <255>;
+	adi,dpd-weights0-real = <0>;
+	adi,dpd-weights0-imag = <(-2)>;
+	adi,dpd-weights1-real = <(-64)>;
+	adi,dpd-weights1-imag = <(-2)>;
+	adi,dpd-weights2-real = <0>;
+	adi,dpd-weights2-imag = <0>;
+
+	adi,clgc-tx1-desired-gain = <(-2000)>;
+	adi,clgc-tx2-desired-gain = <(-2000)>;
+	adi,clgc-tx1-atten-limit = <0>;
+	adi,clgc-tx2-atten-limit = <0>;
+	adi,clgc-tx1-control-ratio = <75>;
+	adi,clgc-tx2-control-ratio = <75>;
+	adi,clgc-allow-tx1-atten-updates = <1>;
+	adi,clgc-allow-tx2-atten-updates = <1>;
+	adi,clgc-additional-delay-offset = <0>;
+	adi,clgc-path-delay-pn-seq-level = <255>;
+	adi,clgc-tx1-rel-threshold = <600>;
+	adi,clgc-tx2-rel-threshold = <600>;
+	adi,clgc-tx1-rel-threshold-en = <0>;
+	adi,clgc-tx2-rel-threshold-en = <0>;
+
+	adi,vswr-additional-delay-offset = <0>;
+	adi,vswr-path-delay-pn-seq-level = <255>;
+	adi,vswr-tx1-vswr-switch-gpio3p3-pin = <0>;
+	adi,vswr-tx2-vswr-switch-gpio3p3-pin = <1>;
+	adi,vswr-tx1-vswr-switch-polarity = <0>;
+	adi,vswr-tx2-vswr-switch-polarity = <0>;
+	adi,vswr-tx1-vswr-switch-delay_us = <50>;
+	adi,vswr-tx2-vswr-switch-delay_us = <50>;
+};
